@@ -34,7 +34,7 @@ node --version
 ### 3. Clone repository
 ```bash
 git clone https://github.com/kaszowski/secureCommunicatorPK_mobile.git
-cd secureCommunicatorPK
+cd secureCommunicatorPK_mobile
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
