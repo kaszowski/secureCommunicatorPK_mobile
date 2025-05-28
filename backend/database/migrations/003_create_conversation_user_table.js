@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async function(knex) 
+exports.up = async function(knex)
 {
   await knex.raw('DROP TABLE IF EXISTS "ConversationUser" CASCADE');
   await knex.schema.createTable('ConversationUser', function(table)
@@ -10,7 +10,8 @@ exports.up = async function(knex)
     table.uuid('UserId').notNullable();
     table.uuid('ConversationId').notNullable();
     table.smallint('Attributes').nullable();
-    table.primary(['UserId', 'ConversationId']); // Klucz główny złożony
+    table.text('EncryptedConversationKey').notNullable();
+    table.primary(['UserId', 'ConversationId']);
     table.foreign('UserId').references('UserId').inTable('User').onDelete('CASCADE');
     table.foreign('ConversationId').references('ConversationId').inTable('Conversation').onDelete('CASCADE');
   })

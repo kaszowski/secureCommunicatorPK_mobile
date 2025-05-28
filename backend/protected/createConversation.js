@@ -7,6 +7,10 @@ router.post('/conversation/create', async (req, res) =>
     {
     const {userToAdd, keyMine, keyOther} = req.body
     try {
+        if(!userToAdd || !keyMine || !keyOther)
+        {
+            return res.status(400).json("Missing fields")
+        }
         const otherUser = await userQueries.GET.findUserByUsername(userToAdd)
         if(!otherUser)
         {
@@ -14,7 +18,7 @@ router.post('/conversation/create', async (req, res) =>
         }
         const newConversation = await userQueries.POST.createConversation(req.userId, otherUser.UserId, keyMine, keyOther)
         //const conversationsData = await userQueries.GET.getUserConversations(req.userId);
-        res.json({ otherUser: otherUser });
+        res.json({ newConversation: newConversation });
     } 
     catch (err) 
     {

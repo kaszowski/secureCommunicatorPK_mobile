@@ -4,16 +4,18 @@ const express = require('express');
 const router = express.Router();
 
 
-router.get('/keys', async (req, res) => {
+router.post('/update', async (req, res) => {
     try {
-        const keys = await userQueries.GET.getUserKeys(req.userId);
-        res.json({ keys: keys });
+        const {updates} = req.body
+        if(!updates) res.status(400).json({ error: 'Empty' });
+       const changed = await userQueries.UPDATE.updateUser(req.userId, updates)
+        res.json({ success: changed});
     } 
     catch (err) 
     {
-        console.error("Error fetching keys", err);
+        console.error("Error fetching conversations:", err);
         res.status(500).json({ error: 'Internal server error' });
     }
-});
+})
 
 module.exports = router
