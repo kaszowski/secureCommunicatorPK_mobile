@@ -7,10 +7,6 @@ router.post('/conversation/create', async (req, res) =>
     {
     const {userToAdd, keyMine, keyOther} = req.body
     try {
-        if(!userToAdd || !keyMine || !keyOther)
-        {
-            return res.status(400).json("Missing fields")
-        }
         const otherUser = await userQueries.GET.findUserByUsername(userToAdd)
         if(!otherUser)
         {
