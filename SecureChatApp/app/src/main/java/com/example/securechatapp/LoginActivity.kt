@@ -9,6 +9,7 @@ import com.example.securechatapp.databinding.ActivityLoginBinding
 import com.example.securechatapp.model.AuthViewModel
 import com.example.securechatapp.network.ApiClient
 import kotlinx.coroutines.launch
+import java.security.MessageDigest
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -35,7 +36,10 @@ class LoginActivity : AppCompatActivity() {
                 when {
                     username.isEmpty() -> etUsername.error = "Username required"
                     password.isEmpty() -> etPassword.error = "Password required"
-                    else -> viewModel.login(username, password)
+                    else -> {
+                        val passwordHash = hashPassword(password)
+                        viewModel.login(username, passwordHash)
+                    }
                 }
             }
 
@@ -56,5 +60,11 @@ class LoginActivity : AppCompatActivity() {
                 binding.tvError.text = error.message ?: "Login failed"
             }
         }
+    }
+
+    private fun hashPassword(password: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hash = digest.digest(password.toByteArray(Charsets.UTF_8))
+        return hash.joinToString("") { "%02x".format(it) }
     }
 }

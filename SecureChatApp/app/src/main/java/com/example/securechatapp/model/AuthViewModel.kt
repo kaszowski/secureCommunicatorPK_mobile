@@ -13,7 +13,6 @@ class AuthViewModel : ViewModel() {
     private val _registerState = MutableLiveData<Result<Unit>>()
     val registerState: LiveData<Result<Unit>> = _registerState
 
-
     fun login(username: String, password: String) {
         viewModelScope.launch {
             try {
@@ -31,11 +30,11 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun register(email: String, username: String, passwordHash: String, publicKey: String) {
+    fun register(email: String, username: String, passwordHash: String, publicKey: String, privateKey: String) {
         viewModelScope.launch {
             try {
                 val response = ApiClient.getService().register(
-                    RegisterRequest(email, username, passwordHash, publicKey)
+                    RegisterRequest(email, username, passwordHash, publicKey, privateKey)
                 )
                 if (response.isSuccessful) {
                     _registerState.postValue(Result.success(Unit))
@@ -47,6 +46,7 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
+
 
     fun logout() {
         viewModelScope.launch {
