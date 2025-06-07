@@ -13,24 +13,13 @@ class AuthViewModel : ViewModel() {
     private val _registerState = MutableLiveData<Result<Unit>>()
     val registerState: LiveData<Result<Unit>> = _registerState
 
-    lateinit var authPrefs: AuthPrefs
-
-    fun initPrefs(context: Context) {
-        authPrefs = AuthPrefs(context)
-    }
 
     fun login(username: String, password: String) {
         viewModelScope.launch {
             try {
                 val response = ApiClient.getService().login(LoginRequest(username, password))
                 if (response.isSuccessful) {
-                    response.body()?.let { loginResponse ->
-                        authPrefs.authToken = loginResponse.token
-                        authPrefs.tokenExpiry = loginResponse.token_expiry
-                        _loginState.postValue(Result.success(Unit))
-                    } ?: run {
-                        _loginState.postValue(Result.failure(Exception("Empty response")))
-                    }
+                    _loginState.postValue(Result.success(Unit))
                 } else {
                     _loginState.postValue(Result.failure(
                         Exception(response.errorBody()?.string() ?: "Unknown error")
@@ -63,7 +52,6 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 ApiClient.getService().logout()
-                authPrefs.clear()
             } catch (e: Exception) {
                 // Handle error
             }

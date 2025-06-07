@@ -1,6 +1,7 @@
 package com.example.securechatapp.network
 
 import com.example.securechatapp.model.Conversation
+import com.example.securechatapp.model.ConversationsResponse
 import com.example.securechatapp.model.CreateConversationRequest
 import com.example.securechatapp.model.KeysResponse
 import com.example.securechatapp.model.LoginRequest
@@ -40,7 +41,8 @@ interface ApiService {
 
     // Conversations
     @GET("conversations")
-    suspend fun getConversations(): Response<List<Conversation>>
+    suspend fun getConversations(): Response<ConversationsResponse>
+
 
     @POST("messages")
     suspend fun getMessages(@Body request: MessagesRequest): Response<List<Message>>

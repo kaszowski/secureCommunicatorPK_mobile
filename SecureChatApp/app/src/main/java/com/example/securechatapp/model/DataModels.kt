@@ -1,5 +1,7 @@
 package com.example.securechatapp.model
 
+import com.google.gson.annotations.SerializedName
+
 // Authentication
 data class LoginRequest(val username: String, val password: String)
 data class LoginResponse(val token: String, val token_expiry: Long)
@@ -19,13 +21,19 @@ data class PublicKeyResponse(val public_key: String)
 
 // Conversations
 data class Conversation(
-    val conversationId: String,
+    @SerializedName("ConversationId")
+    val id: String,
+
+    @SerializedName("Name")
     val name: String? = null,
+
+    @SerializedName("Avatar")
     val avatar: ByteArray? = null,
-    val background: ByteArray? = null,
-//    val status: Int = 0,
-//    val statusTimestamp: Long
+
+    @SerializedName("Background")
+    val background: ByteArray? = null
 )
+
 
 data class MessagesRequest(
     val conversationId: String,
@@ -58,4 +66,9 @@ data class UpdateData(
     val username_show: String? = null,
     val email: String? = null,
     val new_password: String? = null
+)
+
+data class ConversationsResponse(
+    @SerializedName("conversations")
+    val conversations: List<Conversation>
 )

@@ -19,7 +19,7 @@ object ApiClient {
 
         val client = getOkHttpClientWithCert(context)
             .cookieJar(JavaNetCookieJar(cookieManager))
-            .addInterceptor(TokenInterceptor(context))
+            .addInterceptor(TokenInterceptor())
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })

@@ -21,7 +21,6 @@ class LoginActivity : AppCompatActivity() {
 
         // Inicjalizacja
         ApiClient.init(applicationContext)
-        viewModel.initPrefs(applicationContext)
 
         setupUI()
         setupObservers()
