@@ -26,10 +26,10 @@ interface ApiService {
     @POST("logout")
     suspend fun logout(): Response<Unit>
 
-    @POST("refresh/token")
+    @GET("refresh/token")
     suspend fun refreshToken(): Response<LoginResponse>
 
-    @POST("refresh/token")
+    @GET("refresh/token")
     fun refreshTokenSync(): retrofit2.Call<LoginResponse>
 
     // Keys

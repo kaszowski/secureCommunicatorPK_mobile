@@ -1,5 +1,6 @@
 package com.example.securechatapp.network
 
+import TokenInterceptor
 import android.content.Context
 import getOkHttpClientWithCert
 import okhttp3.JavaNetCookieJar
@@ -19,7 +20,7 @@ object ApiClient {
 
         val client = getOkHttpClientWithCert(context)
             .cookieJar(JavaNetCookieJar(cookieManager))
-            .addInterceptor(TokenInterceptor())
+            .addInterceptor(TokenInterceptor(cookieManager))
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })

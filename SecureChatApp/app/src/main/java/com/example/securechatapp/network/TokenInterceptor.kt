@@ -1,53 +1,46 @@
-package com.example.securechatapp.network
-
+import android.util.Log
+import com.example.securechatapp.network.ApiClient
 import okhttp3.Interceptor
 import okhttp3.Response
-import java.io.IOException
+import java.net.CookieManager
 
-class TokenInterceptor : Interceptor {
+class TokenInterceptor(
+    private val cookieManager: CookieManager
+) : Interceptor {
 
-    @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
+        val url = originalRequest.url
 
-        // Nie przechwytujemy login/register/refresh
         val excludedPaths = listOf("login", "register", "refresh/token")
-        if (excludedPaths.any { originalRequest.url.encodedPath.contains(it) }) {
+        if (excludedPaths.any { url.encodedPath.contains(it) }) {
             return chain.proceed(originalRequest)
         }
 
-        // Token JWT jest w ciasteczku – nie trzeba nic dodawać
-        var response = chain.proceed(originalRequest)
+        // Sprawdź token_expiry z ciasteczek
+        val cookies = cookieManager.cookieStore.get(url.toUri())
+        val expiryCookie = cookies.find { it.name == "token_expiry" }
+        val expiryTimestamp = expiryCookie?.value?.toLongOrNull() ?: 0L
+        val now = System.currentTimeMillis()
 
-        // Jeśli odpowiedź to 401 – próbujemy odświeżyć token
-        if (response.code == 401) {
-            response.close() // zamykamy poprzednią odpowiedź
-
+        if (expiryTimestamp - now < 60_000) {
+            // Token prawie wygasł – odśwież
             try {
                 val refreshCall = ApiClient.getService().refreshTokenSync()
                 val refreshResponse = refreshCall.execute()
-
-                if (refreshResponse.isSuccessful) {
-                    // Udało się odświeżyć token – ponów żądanie
-                    val newRequest = originalRequest.newBuilder().build()
-                    return chain.proceed(newRequest)
-                } else {
-                    // Nie udało się odświeżyć – wyczyść cookies (opcjonalnie)
-                    clearCookies()
+                if (!refreshResponse.isSuccessful) {
+                    // Nie udało się – wyczyść ciasteczka
+                    cookieManager.cookieStore.removeAll()
+                }
+                else{
+                    Log.e("RefreshToken", "Token odswiezony")
                 }
             } catch (e: Exception) {
-                clearCookies()
+                cookieManager.cookieStore.removeAll()
             }
         }
 
-        return response
-    }
-
-    private fun clearCookies() {
-        // Wyczyść cookies globalnie – tylko jeśli naprawdę potrzebne
-        val cookieHandler = java.net.CookieHandler.getDefault()
-        if (cookieHandler is java.net.CookieManager) {
-            cookieHandler.cookieStore.removeAll()
-        }
+        // Wyślij request (ciasteczka dołączane automatycznie)
+        return chain.proceed(originalRequest)
     }
 }
