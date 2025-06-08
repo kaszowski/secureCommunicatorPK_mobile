@@ -1,5 +1,6 @@
 package com.example.securechatapp
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -32,15 +33,14 @@ class ChatActivity : AppCompatActivity() {
             return
         }
 
-        // TODO: Pobierz klucz symetryczny dla tej konwersacji
-        // symmetricKey = pobierzKluczDlaKonwersacji(conversationId)
+        // Inicjalizacja Socket.IO
+        viewModel.initializeSocket(this)
 
-        setupRecyclerView()
         setupObservers()
+        setupRecyclerView()
         setupClickListeners()
 
         viewModel.loadMessages(conversationId)
-        Log.e("ChatActivity", viewModel.loadMessages(conversationId).toString())
     }
 
     private fun setupRecyclerView() {
@@ -57,6 +57,14 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
+
+        viewModel.socketStatus.observe(this) { isConnected ->
+            binding.tvConnectionStatus.text = if (isConnected) "Online" else "Offline"
+            binding.tvConnectionStatus.setTextColor(
+                if (isConnected) Color.GREEN else Color.RED
+            )
+        }
+
         viewModel.messages.observe(this) { messages ->
             adapter.submitList(messages)
             binding.rvMessages.scrollToPosition(messages.size - 1)
@@ -80,8 +88,8 @@ class ChatActivity : AppCompatActivity() {
         binding.btnSend.setOnClickListener {
             val messageContent = binding.etMessage.text.toString().trim()
             if (messageContent.isNotEmpty()) {
-                val encryptedMessage = encryptMessage(messageContent, symmetricKey)
-                viewModel.sendMessage(conversationId, encryptedMessage)
+                //val encryptedMessage = encryptMessage(messageContent, symmetricKey)
+                viewModel.sendMessage(conversationId, messageContent.toByteArray())
                 binding.etMessage.text.clear()
             }
         }

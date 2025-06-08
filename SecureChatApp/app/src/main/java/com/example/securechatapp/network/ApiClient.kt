@@ -13,13 +13,16 @@ import java.net.CookiePolicy
 
 object ApiClient {
     private lateinit var apiService: ApiService
+    private lateinit var cookieManager: CookieManager
 
     fun init(context: Context) {
-        val cookieManager = CookieManager()
-        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL)
+        cookieManager = CookieManager().apply {
+            setCookiePolicy(CookiePolicy.ACCEPT_ALL)
+        }
 
         val client = getOkHttpClientWithCert(context)
             .cookieJar(JavaNetCookieJar(cookieManager))
+
             .addInterceptor(TokenInterceptor(cookieManager))
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
@@ -40,5 +43,12 @@ object ApiClient {
             throw IllegalStateException("ApiClient not initialized")
         }
         return apiService
+    }
+
+    fun getCookieManager(): CookieManager {
+        if (!::cookieManager.isInitialized) {
+            throw IllegalStateException("ApiClient not initialized")
+        }
+        return cookieManager
     }
 }
