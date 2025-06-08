@@ -1,6 +1,7 @@
 package com.example.securechatapp
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Base64
 import androidx.activity.viewModels
@@ -52,6 +53,11 @@ class RegisterActivity : AppCompatActivity() {
         viewModel.registerState.observe(this) { result ->
             result.onSuccess {
                 binding.tvError.text = "Rejestracja zakończona sukcesem!"
+
+                // Przejście do LoginActivity
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+                finish()
             }
             result.onFailure { exception ->
                 binding.tvError.text = exception.message ?: "Wystąpił błąd podczas rejestracji"

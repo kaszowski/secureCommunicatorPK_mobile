@@ -2,8 +2,11 @@ package com.example.securechatapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,12 +26,39 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        //setSupportActionBar(binding.toolbar)
+
         setupRecyclerView()
         setupObservers()
         setupClickListeners()
 
         viewModel.loadConversations()
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_logout -> {
+                authViewModel.logout()
+                navigateToLogin()
+                true
+            }
+            R.id.action_delete -> {
+                showDeleteAccountDialog()
+                true
+            }
+            R.id.action_update -> {
+                startActivity(Intent(this, UpdateCredentialsActivity::class.java))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
 
     private fun setupRecyclerView() {
         adapter = ConversationsAdapter { conversationId ->
@@ -66,10 +96,21 @@ class MainActivity : AppCompatActivity() {
         binding.btnNewChat.setOnClickListener {
             //startActivity(Intent(this, NewChatActivity::class.java))
         }
-        binding.btnLogout.setOnClickListener {
-            authViewModel.logout()
-            navigateToLogin()
-        }
+        //binding.btnLogout.setOnClickListener {
+        //    authViewModel.logout()
+        //    navigateToLogin()
+        //}
+    }
+
+    private fun showDeleteAccountDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Usuń konto")
+            .setMessage("Czy na pewno chcesz usunąć swoje konto? Tej operacji nie można cofnąć.")
+            .setPositiveButton("Usuń") { _, _ ->
+                // TODO: wyślij DELETE request
+            }
+            .setNegativeButton("Anuluj", null)
+            .show()
     }
 
 
