@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 
-router.get('/messages', async (req, res) => 
+router.post('/messages', async (req, res) => 
     {
     try {
         const {conversationId, limit, offset} = req.body

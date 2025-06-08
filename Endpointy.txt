@@ -57,3 +57,26 @@ socket.on('message', (msg) => {
 })
 Wysyłanie wiadomości:
 socket.emit('message', { conversationId, content });
+
+
+lub
+
+socket = io('wss://localhost:5000', {
+        auth: { token },
+        transports: ['websocket'] // force websocket transport
+      });
+
+
+
+GET
+/conversations
+/keys
+/messages
+/refresh/token
+/key/public
+POST
+/conversation/create
+/logout
+/update
+/login
+/register

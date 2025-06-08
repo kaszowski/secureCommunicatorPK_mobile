@@ -38,7 +38,7 @@ class LoginActivity : AppCompatActivity() {
                     password.isEmpty() -> etPassword.error = "Password required"
                     else -> {
                         val passwordHash = hashPassword(password)
-                        viewModel.login(username, passwordHash)
+                        viewModel.login(username, password)
                     }
                 }
             }

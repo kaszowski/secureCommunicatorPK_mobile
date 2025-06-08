@@ -1,39 +1,59 @@
 package com.example.securechatapp.model
 
+import android.util.Log
 import androidx.lifecycle.*
-import com.example.securechatapp.network.*
+import com.example.securechatapp.network.ApiClient
 import kotlinx.coroutines.launch
 
 class KeysViewModel : ViewModel() {
-    private val _keys = MutableLiveData<KeysResponse?>()
-    val keys: LiveData<KeysResponse?> = _keys
 
-    private val _publicKey = MutableLiveData<String?>()
-    val publicKey: LiveData<String?> = _publicKey
+    private val _ownKeys = MutableLiveData<KeysResponse?>()
+    val ownKeys: LiveData<KeysResponse?> = _ownKeys
 
-    fun loadKeys() {
+    private val _recipientPublicKey = MutableLiveData<String?>()
+    val recipientPublicKey: LiveData<String?> = _recipientPublicKey
+
+    /**
+     * Pobiera własne klucze publiczny i prywatny (np. po zalogowaniu).
+     */
+    fun loadOwnKeys() {
         viewModelScope.launch {
             try {
                 val response = ApiClient.getService().getKeys()
                 if (response.isSuccessful) {
-                    _keys.postValue(response.body())
+                    _ownKeys.postValue(response.body())
+                } else {
+                    Log.e("KeysViewModel", "Failed to load own keys: ${response.code()}")
                 }
             } catch (e: Exception) {
-                // Handle error
+                Log.e("KeysViewModel", "Error loading own keys", e)
             }
         }
     }
 
-    fun getPublicKey(username: String) {
+    /**
+     * Pobiera publiczny klucz odbiorcy po nazwie użytkownika.
+     */
+    fun loadRecipientPublicKey(username: String) {
         viewModelScope.launch {
             try {
-                val response = ApiClient.getService().getPublicKey(PublicKeyRequest(username))
+                val request = PublicKeyRequest(username)
+                val response = ApiClient.getService().getPublicKey(request)
                 if (response.isSuccessful) {
-                    _publicKey.postValue(response.body()?.public_key)
+                    _recipientPublicKey.postValue(response.body()?.public_key)
+                } else {
+                    Log.e("KeysViewModel", "Failed to get recipient key: ${response.code()}")
                 }
             } catch (e: Exception) {
-                // Handle error
+                Log.e("KeysViewModel", "Error getting recipient key", e)
             }
         }
+    }
+
+    /**
+     * Czy klucze zostały załadowane.
+     */
+    fun areKeysReady(): Boolean {
+        return _ownKeys.value?.private_key != null && _recipientPublicKey.value != null
     }
 }
