@@ -2,6 +2,7 @@ package com.example.securechatapp
 
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -20,28 +21,45 @@ class MessagesAdapter(
 
         fun bind(message: Message) {
             binding.apply {
-                Log.e("TEST", message.content?.toString() ?: "content is null")
-                val bytes = message.content?.data?.map { it.toByte() }?.toByteArray() ?: byteArrayOf()
-                val text = String(bytes) // Domyślnie UTF-8
+                val isCurrentUser = message.userId == "5c6b24c1-053a-4832-90bc-8590a8865737"
 
-                tvMessageContent.text = text
+                if (isCurrentUser) {
+                    layoutSender.visibility = View.VISIBLE
+                    layoutReceiver.visibility = View.GONE
 
-                val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-                isoFormat.timeZone = TimeZone.getTimeZone("UTC")
-                val date = try {
-                    isoFormat.parse(message.sendAt)
-                } catch (e: Exception) {
-                    null
+                    val bytes = message.content?.data?.map { it.toByte() }?.toByteArray() ?: byteArrayOf()
+                    val text = String(bytes) // Domyślnie UTF-8
+
+                    tvSenderContent.text = text
+
+                    tvSenderTime.text = formatTime(message.sendAt)
+                } else {
+                    layoutReceiver.visibility = View.VISIBLE
+                    layoutSender.visibility = View.GONE
+
+                    val bytes = message.content?.data?.map { it.toByte() }?.toByteArray() ?: byteArrayOf()
+                    val text = String(bytes) // Domyślnie UTF-8
+
+                    tvReceiverContent.text = text
+
+                    tvReceiverTime.text = formatTime(message.sendAt)
                 }
-
-                val displayFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-                tvMessageTime.text = date?.let { displayFormat.format(it) } ?: ""
-
-                root.setOnClickListener { onItemClick(message) }
             }
         }
 
-    }
+        private fun formatTime(timestamp: String): String {
+            return try {
+                val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                isoFormat.timeZone = TimeZone.getTimeZone("UTC")
+                val date = isoFormat.parse(timestamp)
+
+                val displayFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+                date?.let { displayFormat.format(it) } ?: ""
+            } catch (e: Exception) {
+                ""
+            }
+        }
+    } // Tutaj było brakujące zamknięcie klasy ViewHolder
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemMessageBinding.inflate(

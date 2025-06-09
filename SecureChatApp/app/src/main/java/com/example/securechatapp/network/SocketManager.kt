@@ -2,6 +2,8 @@ package com.example.securechatapp.network
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.securechatapp.model.Content
 import com.example.securechatapp.model.Message
 import getOkHttpClientWithCert
@@ -14,6 +16,8 @@ import java.net.URISyntaxException
 
 object SocketManager {
     private var socket: Socket? = null
+    private val _connectionStatus = MutableLiveData<Boolean>()
+    val connectionStatus: LiveData<Boolean> = _connectionStatus
 
     fun initialize(context: Context, cookieManager: CookieManager) {
         var token = ""
@@ -49,20 +53,24 @@ object SocketManager {
 
         } catch (e: URISyntaxException) {
             Log.e("SocketIO", "Błąd inicjalizacji socketu", e)
+            _connectionStatus.postValue(true)
         }
     }
 
     private fun setupBaseListeners() {
         socket?.on(Socket.EVENT_CONNECT) {
             Log.d("SocketIO", "Połączono z serwerem")
+            _connectionStatus.postValue(true)
         }
 
         socket?.on(Socket.EVENT_DISCONNECT) {
             Log.d("SocketIO", "Rozłączono z serwerem")
+            _connectionStatus.postValue(false)
         }
 
         socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
             Log.e("SocketIO", "Błąd połączenia: ${args.firstOrNull()}")
+            _connectionStatus.postValue(false)
         }
     }
 
@@ -94,14 +102,11 @@ object SocketManager {
         )
     }
 
-    fun sendMessage(conversationId: String, encryptedContent: ByteArray) {
+    fun sendMessage(conversationId: String, content: String) {
         try {
             val messageData = JSONObject().apply {
                 put("conversationId", conversationId)
-                put("content", JSONObject().apply {
-                    put("type", "Buffer")
-                    put("data", encryptedContent.map { it.toInt() })
-                })
+                put("content", content)
             }
             socket?.emit("message", messageData)
         } catch (e: Exception) {

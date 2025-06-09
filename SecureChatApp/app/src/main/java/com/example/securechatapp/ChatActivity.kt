@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.securechatapp.databinding.ActivityChatBinding
@@ -32,6 +33,10 @@ class ChatActivity : AppCompatActivity() {
             finish()
             return
         }
+        symmetricKey = intent.getByteArrayExtra("conversationKey") ?: run {
+            finish()
+            return
+        }
 
         // Inicjalizacja Socket.IO
         viewModel.initializeSocket(this)
@@ -41,6 +46,7 @@ class ChatActivity : AppCompatActivity() {
         setupClickListeners()
 
         viewModel.loadMessages(conversationId)
+        Log.e("Klucz symetryczny (zakodowany)", symmetricKey.toString())
     }
 
     private fun setupRecyclerView() {
@@ -59,10 +65,18 @@ class ChatActivity : AppCompatActivity() {
     private fun setupObservers() {
 
         viewModel.socketStatus.observe(this) { isConnected ->
-            binding.tvConnectionStatus.text = if (isConnected) "Online" else "Offline"
+            binding.tvConnectionStatus.text = if (isConnected == true) "Online" else "Offline"
             binding.tvConnectionStatus.setTextColor(
-                if (isConnected) Color.GREEN else Color.RED
+                if (isConnected == true) Color.GREEN else Color.RED
             )
+
+            // Aktualizuj ikonę
+            val icon = if (isConnected == true) {
+                ContextCompat.getDrawable(this, R.drawable.ic_circle_online)
+            } else {
+                ContextCompat.getDrawable(this, R.drawable.ic_circle_offline)
+            }
+            binding.tvConnectionStatus.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null)
         }
 
         viewModel.messages.observe(this) { messages ->
@@ -89,7 +103,7 @@ class ChatActivity : AppCompatActivity() {
             val messageContent = binding.etMessage.text.toString().trim()
             if (messageContent.isNotEmpty()) {
                 //val encryptedMessage = encryptMessage(messageContent, symmetricKey)
-                viewModel.sendMessage(conversationId, messageContent.toByteArray())
+                viewModel.sendMessage(conversationId, messageContent)
                 binding.etMessage.text.clear()
             }
         }

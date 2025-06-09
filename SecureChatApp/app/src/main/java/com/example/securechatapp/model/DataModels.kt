@@ -31,7 +31,10 @@ data class Conversation(
     val avatar: ByteArray? = null,
 
     @SerializedName("Background")
-    val background: ByteArray? = null
+    val background: ByteArray? = null,
+
+    @SerializedName("EncryptedConversationKey")
+    val conversationKey : Content
 )
 
 

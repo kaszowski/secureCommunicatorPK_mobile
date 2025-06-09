@@ -61,9 +61,10 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupRecyclerView() {
-        adapter = ConversationsAdapter { conversationId ->
+        adapter = ConversationsAdapter { conversationId, conversationKey ->
             val intent = Intent(this, ChatActivity::class.java)
             intent.putExtra("conversationId", conversationId)
+            intent.putExtra("conversationKey", conversationKey)
             startActivity(intent)
         }
 
