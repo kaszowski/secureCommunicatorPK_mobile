@@ -1,5 +1,6 @@
 package com.example.securechatapp.utils
 
+import android.util.Base64
 import java.util.Random
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
@@ -35,5 +36,18 @@ object CryptoUtils {
 
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec)
         return cipher.doFinal(encrypted)
+    }
+
+    fun decryptPrivateKey(encryptedBase64: String, password: String): String {
+        val encryptedBytes = Base64.decode(encryptedBase64, Base64.NO_WRAP)
+        val passwordBytes = password.toByteArray(Charsets.UTF_8)
+        val keyBytes = ByteArray(16)
+        System.arraycopy(passwordBytes, 0, keyBytes, 0, passwordBytes.size.coerceAtMost(16))
+
+        val secretKey = SecretKeySpec(keyBytes, "AES")
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKey)
+        val decrypted = cipher.doFinal(encryptedBytes)
+        return String(decrypted, Charsets.UTF_8)
     }
 }

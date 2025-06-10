@@ -15,7 +15,17 @@ data class RegisterRequest(
 )
 
 // Keys
-data class KeysResponse(val public_key: String, val private_key: String)
+data class Keys(
+    @SerializedName("PublicKey")
+    val public_key: Content,
+
+    @SerializedName("PrivateKey")
+    val private_key: Content)
+
+data class KeysDecrypted(
+    val public_key: String,
+    val private_key: String)
+
 data class PublicKeyRequest(val username: String)
 data class PublicKeyResponse(val public_key: String)
 
@@ -77,6 +87,11 @@ data class UpdateData(
 data class ConversationsResponse(
     @SerializedName("conversations")
     val conversations: List<Conversation>
+)
+
+data class KeysResponse(
+    @SerializedName("keys")
+    val keys: Keys
 )
 
 data class MessageRequest(
