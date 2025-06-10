@@ -66,7 +66,7 @@ class ChatViewModel : ViewModel() {
         // Najpierw dodaj lokalnie dla natychmiastowego feedbacku
         val tempMessage = Message(
             messageId = UUID.randomUUID().toString(),
-            userId = "local",
+            userId = ApiClient.getUserId().toString(),
             conversationId = conversationId,
             content = Content("Buffer", content.toByteArray().map { it.toInt() }),
             sendAt = System.currentTimeMillis().toString()

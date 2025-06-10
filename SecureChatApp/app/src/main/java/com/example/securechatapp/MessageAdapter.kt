@@ -11,6 +11,11 @@ import com.example.securechatapp.databinding.ItemMessageBinding
 import com.example.securechatapp.model.Message
 import java.text.SimpleDateFormat
 import java.util.*
+import org.json.JSONObject
+import java.nio.charset.StandardCharsets
+import android.util.Base64
+import com.example.securechatapp.network.ApiClient
+import java.net.URI
 
 class MessagesAdapter(
     private val onItemClick: (Message) -> Unit = {}
@@ -21,7 +26,8 @@ class MessagesAdapter(
 
         fun bind(message: Message) {
             binding.apply {
-                val isCurrentUser = message.userId == "5c6b24c1-053a-4832-90bc-8590a8865737"
+
+                val isCurrentUser = message.userId == ApiClient.getUserId()
 
                 if (isCurrentUser) {
                     layoutSender.visibility = View.VISIBLE
@@ -81,4 +87,5 @@ class MessagesAdapter(
         override fun areContentsTheSame(oldItem: Message, newItem: Message) =
             oldItem == newItem
     }
+
 }
