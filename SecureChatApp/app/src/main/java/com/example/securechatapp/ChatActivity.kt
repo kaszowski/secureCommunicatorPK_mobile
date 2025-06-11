@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
+import javax.crypto.spec.SecretKeySpec
 
 class ChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChatBinding
@@ -36,10 +37,12 @@ class ChatActivity : AppCompatActivity() {
             finish()
             return
         }
-        symmetricKey = intent.getByteArrayExtra("conversationKey") ?: run {
-            finish()
-            return
-        }
+//        symmetricKey = intent.getByteArrayExtra("conversationKey") ?: run {
+//            finish()
+//            return
+//        }
+        symmetricKey = "mysecretkey12345".toByteArray(Charsets.UTF_8)
+        Log.d("KEY_DEBUG", "Długość klucza w bajtach: ${symmetricKey.size}")
 
         // Inicjalizacja Socket.IO
         viewModel.initializeSocket(this)
@@ -53,7 +56,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = MessagesAdapter { message ->
+        adapter = MessagesAdapter(symmetricKey) { message ->
             // TODO: Obsługa kliknięcia na wiadomość jeśli potrzebna
         }
 
@@ -111,18 +114,14 @@ class ChatActivity : AppCompatActivity() {
         binding.btnSend.setOnClickListener {
             val messageContent = binding.etMessage.text.toString().trim()
             if (messageContent.isNotEmpty()) {
-                //val encryptedMessage = encryptMessage(messageContent, symmetricKey)
-                viewModel.sendMessage(conversationId, messageContent)
+                val encryptedMessage = encryptMessage(messageContent, symmetricKey)
+                viewModel.sendMessage(conversationId, encryptedMessage)
                 binding.etMessage.text.clear()
             }
         }
     }
 
-    private fun encryptMessage(message: String, key: ByteArray): ByteArray {
-        return CryptoUtils.encrypt(message.toByteArray(), key)
-    }
-
-    private fun decryptMessage(encryptedMessage: ByteArray, key: ByteArray): String {
-        return String(CryptoUtils.decrypt(encryptedMessage, key))
+    private fun encryptMessage(message: String, key: ByteArray): String {
+        return CryptoUtils.encrypt(message, key)
     }
 }

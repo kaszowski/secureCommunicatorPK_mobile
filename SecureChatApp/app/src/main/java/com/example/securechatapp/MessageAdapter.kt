@@ -15,9 +15,11 @@ import org.json.JSONObject
 import java.nio.charset.StandardCharsets
 import android.util.Base64
 import com.example.securechatapp.network.ApiClient
+import com.example.securechatapp.utils.CryptoUtils
 import java.net.URI
 
 class MessagesAdapter(
+    private val symmetricKey: ByteArray,
     private val onItemClick: (Message) -> Unit = {}
 ) : ListAdapter<Message, MessagesAdapter.ViewHolder>(DiffCallback()) {
 
@@ -36,7 +38,8 @@ class MessagesAdapter(
                     val bytes = message.content?.data?.map { it.toByte() }?.toByteArray() ?: byteArrayOf()
                     val text = String(bytes) // Domyślnie UTF-8
 
-                    tvSenderContent.text = text
+
+                    tvSenderContent.text = decryptMessage(text, symmetricKey)
 
                     tvSenderTime.text = formatTime(message.sendAt)
                 } else {
@@ -46,7 +49,9 @@ class MessagesAdapter(
                     val bytes = message.content?.data?.map { it.toByte() }?.toByteArray() ?: byteArrayOf()
                     val text = String(bytes) // Domyślnie UTF-8
 
-                    tvReceiverContent.text = text
+                    Log.d("Tekst przed deszyfracja", text)
+                    Log.d("Tekst po deszyfracji", decryptMessage(text, symmetricKey))
+                    tvReceiverContent.text = decryptMessage(text, symmetricKey)
 
                     tvReceiverTime.text = formatTime(message.sendAt)
                 }
@@ -112,6 +117,10 @@ class MessagesAdapter(
             add(Calendar.DAY_OF_YEAR, -1)
         }
         return isSameDay(yesterday, date)
+    }
+
+    private fun decryptMessage(encryptedMessage: String, key: ByteArray): String {
+        return CryptoUtils.decrypt(encryptedMessage, key)
     }
 
 }
