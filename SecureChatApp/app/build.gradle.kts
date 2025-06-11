@@ -91,7 +91,7 @@ dependencies {
         exclude(group = "org.json", module = "json") // uniknij konfliktu z Android JSON
     }
 
-    implementation("com.yubico.yubikit:android:2.3.0")
+    //implementation("com.yubico.yubikit:android:2.3.0")
 
 
 

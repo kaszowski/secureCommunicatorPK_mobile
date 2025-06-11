@@ -1,7 +1,9 @@
 package com.example.securechatapp.utils
 
 import android.util.Base64
+import java.security.KeyFactory
 import java.security.SecureRandom
+import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Random
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
@@ -48,4 +50,22 @@ object CryptoUtils {
         val decrypted = cipher.doFinal(encryptedBytes)
         return String(decrypted, Charsets.UTF_8)
     }
+
+    fun rsaDecrypt(encryptedData: ByteArray, privateKeyPEM: String): ByteArray {
+        val cleanKey = privateKeyPEM
+            .replace("-----BEGIN PRIVATE KEY-----", "")
+            .replace("-----END PRIVATE KEY-----", "")
+            .replace("\\s".toRegex(), "")
+        val decoded = Base64.decode(cleanKey, Base64.DEFAULT)
+        val keySpec = PKCS8EncodedKeySpec(decoded)
+        val keyFactory = KeyFactory.getInstance("RSA")
+        val privateKey = keyFactory.generatePrivate(keySpec)
+
+        val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
+        cipher.init(Cipher.DECRYPT_MODE, privateKey)
+        return cipher.doFinal(encryptedData)
+    }
+
+
+
 }

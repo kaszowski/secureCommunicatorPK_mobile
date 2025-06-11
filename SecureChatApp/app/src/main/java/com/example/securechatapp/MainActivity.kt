@@ -2,8 +2,6 @@ package com.example.securechatapp
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
-import android.util.Base64
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -14,32 +12,16 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.securechatapp.databinding.ActivityMainBinding
 import com.example.securechatapp.model.AuthViewModel
 import com.example.securechatapp.model.ConversationViewModel
-import com.example.securechatapp.model.CreateConversationRequest
-import com.example.securechatapp.model.KeysDecrypted
 import com.example.securechatapp.model.KeysViewModel
 import com.example.securechatapp.network.ApiClient
-import com.example.securechatapp.piv.PivGetPublicKeyContract
-import com.yubico.yubikit.piv.Slot
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.security.KeyFactory
-import java.security.KeyPair
-import java.security.KeyPairGenerator
-import java.security.MessageDigest
-import java.security.PrivateKey
-import java.security.PublicKey
-import java.security.SecureRandom
-import java.security.spec.PKCS8EncodedKeySpec
-import java.security.spec.X509EncodedKeySpec
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
+
 
 //private const val PREF_PUBLIC_KEY = "PUBLIC_KEY"
 
@@ -162,23 +144,49 @@ class MainActivity : AppCompatActivity() {
             hint = "Nazwa użytkownika"
         }
 
-        val passwordInput = EditText(this).apply {
-            hint = "Twoje hasło (do odszyfrowania klucza)"
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        }
-
         layout.addView(usernameInput)
-        layout.addView(passwordInput)
 
         AlertDialog.Builder(this)
             .setTitle("Nowa konwersacja")
             .setView(layout)
             .setPositiveButton("Utwórz") { _, _ ->
                 val username = usernameInput.text.toString().trim()
-                val password = passwordInput.text.toString()
-                if (username.isNotBlank() && password.isNotBlank()) {
-                    //createNewConversation(username, password)
-                    //TODO
+                val loggedInUsername = ApiClient.loggedInUsername
+
+                if (loggedInUsername == null) {
+                    Toast.makeText(this, "Nie zalogowano użytkownika", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                if (username.isNotBlank()) {
+                    // 1. Załaduj klucz publiczny odbiorcy
+                    keysViewModel.loadRecipientPublicKey(username)
+                    keysViewModel.loadOwnPublicKey(loggedInUsername)
+
+                    // 2. Poczekaj chwilę i sprawdź, czy klucze są dostępne
+                    lifecycleScope.launch {
+                        repeat(10) { attempt ->
+                            val ownPublicKey = keysViewModel.ownPublicKey.value
+                            val recipientKey = keysViewModel.recipientPublicKey.value
+                            Log.d("NewChatDialog", "Attempt $attempt: ownKey = $ownPublicKey, recipientKey = $recipientKey")
+
+                            if (ownPublicKey != null && recipientKey != null) {
+                                // 3. Utwórz konwersację
+                                viewModel.createConversation(
+                                    userToAdd = username,
+                                    ownPublicKey = ownPublicKey,
+                                    otherPublicKey = recipientKey
+                                )
+                                Toast.makeText(this@MainActivity, "Tworzenie konwersacji...", Toast.LENGTH_SHORT).show()
+                                return@launch
+                            }
+
+                            delay(400L) // Poczekaj 200 ms i sprawdź jeszcze raz
+                        }
+
+                        // Po 2 sekundach nadal brak kluczy
+                        Toast.makeText(this@MainActivity, "Nie udało się pobrać kluczy", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     Toast.makeText(this, "Wprowadź dane", Toast.LENGTH_SHORT).show()
                 }
@@ -186,88 +194,6 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Anuluj", null)
             .show()
     }
-
-
-    //TODO: deszyfrowanie nie bardzo działa
-    /*private fun createNewConversation(recipientUsername: String, password: String) {
-        // 1. Załaduj i odszyfruj klucze użytkownika oraz publiczny klucz odbiorcy
-        keysViewModel.loadAndDecryptKeys(password)
-        keysViewModel.loadRecipientPublicKey(recipientUsername)
-
-        val combined = MediatorLiveData<Pair<KeysDecrypted?, String?>>().apply {
-            var ownKeys: KeysDecrypted? = null
-            var recipientKey: String? = null
-
-            addSource(keysViewModel.ownKeys) {
-                ownKeys = it
-                value = Pair(ownKeys, recipientKey)
-            }
-            addSource(keysViewModel.recipientPublicKey) {
-                recipientKey = it
-                value = Pair(ownKeys, recipientKey)
-            }
-        }
-
-        combined.observe(this) { (ownKeys, recipientPublicKeyPem) ->
-            if (ownKeys != null && recipientPublicKeyPem != null) {
-                combined.removeObservers(this)
-
-                try {
-                    // 2. Generuj losowy klucz AES do szyfrowania rozmowy
-                    val aesKey = generateAESKey()
-
-                    // 3. Szyfruj klucz AES publicznymi kluczami (dla siebie i odbiorcy)
-                    val encryptedForMe = encryptWithRSAKey(aesKey.encoded, ownKeys.public_key)
-                    val encryptedForRecipient = encryptWithRSAKey(aesKey.encoded, recipientPublicKeyPem)
-
-                    // 4. Twórz zapytanie do API
-                    val request = CreateConversationRequest(
-                        userToAdd = recipientUsername,
-                        keyMine = android.util.Base64.encodeToString(encryptedForMe, android.util.Base64.NO_WRAP),
-                        keyOther = android.util.Base64.encodeToString(encryptedForRecipient, android.util.Base64.NO_WRAP)
-                    )
-
-
-                    lifecycleScope.launch {
-                        val response = ApiClient.getService().createConversation(request)
-                        if (response.isSuccessful) {
-                            Toast.makeText(this@MainActivity, "Konwersacja utworzona", Toast.LENGTH_SHORT).show()
-                            viewModel.loadConversations()
-                        } else {
-                            Toast.makeText(this@MainActivity, "Błąd: ${response.code()}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e("MainActivity", "Błąd podczas tworzenia konwersacji", e)
-                    Toast.makeText(this, "Błąd szyfrowania", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-
-    private fun generateAESKey(): SecretKey {
-        val keyGen = KeyGenerator.getInstance("AES")
-        keyGen.init(256)
-        return keyGen.generateKey()
-    }
-
-    private fun encryptWithRSAKey(data: ByteArray, publicKeyPEM: String): ByteArray {
-        val publicKeyClean = publicKeyPEM
-            .replace("-----BEGIN PUBLIC KEY-----", "")
-            .replace("-----END PUBLIC KEY-----", "")
-            .replace("\\s".toRegex(), "")
-
-        val decoded = Base64.decode(publicKeyClean, Base64.DEFAULT)
-        val keySpec = X509EncodedKeySpec(decoded)
-        val keyFactory = KeyFactory.getInstance("RSA")
-        val publicKey = keyFactory.generatePublic(keySpec)
-
-        val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey)
-        return cipher.doFinal(data)
-    }*/
-
 
     private fun showDeleteAccountDialog() {
         AlertDialog.Builder(this)

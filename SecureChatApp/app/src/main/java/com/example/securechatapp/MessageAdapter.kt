@@ -19,7 +19,7 @@ import com.example.securechatapp.utils.CryptoUtils
 import java.net.URI
 
 class MessagesAdapter(
-    private val symmetricKey: ByteArray,
+    private val decryptedSymetricKey: ByteArray,
     private val onItemClick: (Message) -> Unit = {}
 ) : ListAdapter<Message, MessagesAdapter.ViewHolder>(DiffCallback()) {
 
@@ -39,7 +39,7 @@ class MessagesAdapter(
                     val text = String(bytes) // Domyślnie UTF-8
 
 
-                    tvSenderContent.text = decryptMessage(text, symmetricKey)
+                    tvSenderContent.text = decryptMessage(text, decryptedSymetricKey)
 
                     tvSenderTime.text = formatTime(message.sendAt)
                 } else {
@@ -50,8 +50,8 @@ class MessagesAdapter(
                     val text = String(bytes) // Domyślnie UTF-8
 
                     Log.d("Tekst przed deszyfracja", text)
-                    Log.d("Tekst po deszyfracji", decryptMessage(text, symmetricKey))
-                    tvReceiverContent.text = decryptMessage(text, symmetricKey)
+                    Log.d("Tekst po deszyfracji", decryptMessage(text, decryptedSymetricKey))
+                    tvReceiverContent.text = decryptMessage(text, decryptedSymetricKey)
 
                     tvReceiverTime.text = formatTime(message.sendAt)
                 }

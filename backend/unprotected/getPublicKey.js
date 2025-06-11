@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 
-router.get('/key/public', async (req, res) => {
+router.post('/key/public', async (req, res) => {
     try {
         const {username} = req.body
         if(!username) return res.status(400).json({error: "No user id"})

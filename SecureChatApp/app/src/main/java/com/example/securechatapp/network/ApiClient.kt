@@ -20,6 +20,14 @@ object ApiClient {
     private lateinit var apiService: ApiService
     private lateinit var cookieManager: CookieManager
 
+    var loggedInUsername: String? = null
+        private set
+
+    var privateUserKey: String? = null
+        private set
+
+
+
     fun init(context: Context) {
         cookieManager = CookieManager().apply {
             setCookiePolicy(CookiePolicy.ACCEPT_ALL)
@@ -101,5 +109,16 @@ object ApiClient {
         }
 
         return payload?.optString("userId")
+    }
+
+    fun setLoggedInUsername(username: String) {
+        loggedInUsername = username
+    }
+    fun setPrivateKey(privateKey: String) {
+        privateUserKey = privateKey
+    }
+
+    fun getPrivateKey(): String? {
+        return privateUserKey
     }
 }

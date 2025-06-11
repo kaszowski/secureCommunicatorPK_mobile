@@ -41,7 +41,7 @@ class LoginActivity : AppCompatActivity() {
                     password.isEmpty() -> etPassword.error = "Password required"
                     else -> {
                         val passwordHash = hashPassword(password)
-                        viewModel.login(username, password)
+                        viewModel.login(username, passwordHash)
                     }
                 }
             }
@@ -54,6 +54,9 @@ class LoginActivity : AppCompatActivity() {
             result.onSuccess {
                 val username = binding.etUsername.text.toString().trim()
                 val password = binding.etPassword.text.toString().trim()
+
+                //Zapis nicku do pobrania klucza publicznego później
+                ApiClient.setLoggedInUsername(username)
 
                 keysViewModel.loadAndDecryptKeys(password)
                 startActivity(

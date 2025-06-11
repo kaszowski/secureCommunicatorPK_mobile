@@ -173,10 +173,10 @@ BEGIN
         (alice_jenson_id, conversation_id, encrypted_conv_key_for_alice, NULL);
 
     -- 3. Dodaj wiadomości do konwersacji
-    INSERT INTO "Message" ("MessageId", "UserId", "ConversationId", "Content", "SendAt")
-    VALUES
-        (gen_random_uuid(), bob_marley_id, conversation_id, 'Hey Alice!', '2025-04-30T16:00:00Z'),
-        (gen_random_uuid(), alice_jenson_id, conversation_id, 'Hi Bob! How are you?', '2025-04-30T16:01:00Z'),
-        (gen_random_uuid(), bob_marley_id, conversation_id, 'Doing great, thanks! Just testing this chat.', '2025-04-30T16:02:00Z'),
-        (gen_random_uuid(), alice_jenson_id, conversation_id, 'Looks like it works!', '2025-04-30T16:03:00Z');
+    --INSERT INTO "Message" ("MessageId", "UserId", "ConversationId", "Content", "SendAt")
+    --VALUES
+    --    (gen_random_uuid(), bob_marley_id, conversation_id, 'Hey Alice!', '2025-04-30T16:00:00Z'),
+    --    (gen_random_uuid(), alice_jenson_id, conversation_id, 'Hi Bob! How are you?', '2025-04-30T16:01:00Z'),
+    --    (gen_random_uuid(), bob_marley_id, conversation_id, 'Doing great, thanks! Just testing this chat.', '2025-04-30T16:02:00Z'),
+    --    (gen_random_uuid(), alice_jenson_id, conversation_id, 'Looks like it works!', '2025-04-30T16:03:00Z');
 END $$;

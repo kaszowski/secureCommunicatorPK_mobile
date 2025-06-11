@@ -27,7 +27,15 @@ data class KeysDecrypted(
     val private_key: String)
 
 data class PublicKeyRequest(val username: String)
-data class PublicKeyResponse(val public_key: String)
+//data class PublicKeyResponse(val public_key: String)
+data class PublicKeyResponse(
+    val keys: BufferWrapper?
+)
+
+data class BufferWrapper(
+    val type: String,
+    val data: List<Int>
+)
 
 // Conversations
 data class Conversation(
