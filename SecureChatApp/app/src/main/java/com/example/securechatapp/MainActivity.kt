@@ -2,6 +2,7 @@ package com.example.securechatapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Base64
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -13,13 +14,21 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.securechatapp.databinding.ActivityMainBinding
 import com.example.securechatapp.model.AuthViewModel
 import com.example.securechatapp.model.ConversationViewModel
+import com.example.securechatapp.piv.PivGetPublicKeyContract
+import com.yubico.yubikit.piv.Slot
 import kotlinx.coroutines.launch
+import java.security.KeyFactory
+import java.security.spec.X509EncodedKeySpec
+
+//private const val PREF_PUBLIC_KEY = "PUBLIC_KEY"
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val authViewModel: AuthViewModel by viewModels()
     private val viewModel: ConversationViewModel by viewModels()
     private lateinit var adapter: ConversationsAdapter
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +37,8 @@ class MainActivity : AppCompatActivity() {
 
         //setSupportActionBar(binding.toolbar)
 
+
+
         setupRecyclerView()
         setupObservers()
         setupClickListeners()
@@ -35,6 +46,16 @@ class MainActivity : AppCompatActivity() {
         viewModel.loadConversations()
     }
 
+    /*override fun onPause() {
+        savePrivateKeyU2F()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        loadPublicKeyU2F()
+        super.onResume()
+    }
+*/
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
@@ -120,5 +141,23 @@ class MainActivity : AppCompatActivity() {
         })
         finish()
     }
+
+    /*private fun loadPublicKeyU2F(){
+        getPreferences(MODE_PRIVATE).getString(PREF_PUBLIC_KEY, null)?.let {
+            val bytes = Base64.decode(it, Base64.DEFAULT)
+            val kf = KeyFactory.getInstance("RSA")
+            val spec = X509EncodedKeySpec(bytes)
+            authViewModel.publicKey = kf.generatePublic(spec)
+        }
+    }*/
+
+    /*private fun savePrivateKeyU2F(){
+        authViewModel.publicKey?.let {
+            getPreferences(MODE_PRIVATE).edit()
+                .putString(PREF_PUBLIC_KEY, Base64.encodeToString(it.encoded, Base64.DEFAULT))
+                .apply()
+        }
+    }*/
+
 
 }

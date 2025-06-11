@@ -8,22 +8,39 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.securechatapp.databinding.ActivityRegisterBinding
 import com.example.securechatapp.model.AuthViewModel
+import com.example.securechatapp.piv.PivGetPublicKeyContract
+import com.yubico.yubikit.piv.Slot
+import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
+import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
+
+private const val PREF_PUBLIC_KEY = "PUBLIC_KEY"
+
+
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
     private val viewModel: AuthViewModel by viewModels()
 
+     private val requestPublicKey = registerForActivityResult(PivGetPublicKeyContract()) {
+         viewModel.publicKey = it
+         savePrivateKeyU2F()
+     }
+
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        if(viewModel.publicKey == null){
+            requestPublicKey.launch(Slot.KEY_MANAGEMENT)
+        }
 
         binding.btnRegister.setOnClickListener {
             val username = binding.etUsername.text.toString().trim()
@@ -39,10 +56,17 @@ class RegisterActivity : AppCompatActivity() {
                 val passwordHash = hashPassword(password)
                 val keyPair = generateKeyPair()
                 val publicKeyBase64 = Base64.encodeToString(keyPair.public.encoded, Base64.NO_WRAP)
-                val encryptedPrivateKeyBase64 = encryptPrivateKey(keyPair.private.encoded, password)
+                if(viewModel.publicKey != null){
+                    val encryptedPrivateKeyYubico = encryptPrivateKey(viewModel.publicKey!!.encoded, password)
+                    viewModel.register(email, username, passwordHash, publicKeyBase64, encryptedPrivateKeyYubico)
+                }else{
+                    val encryptedPrivateKeyBase64 = encryptPrivateKey(keyPair.private.encoded, password)
+                    viewModel.register(email, username, passwordHash, publicKeyBase64, encryptedPrivateKeyBase64)
+                }
+
 
                 // Wywołanie register z public i private key
-                viewModel.register(email, username, passwordHash, publicKeyBase64, encryptedPrivateKeyBase64)
+                //viewModel.register(email, username, passwordHash, publicKeyBase64, encryptedPrivateKeyBase64)
 
                 binding.tvError.text = "Wysyłanie danych rejestracji..."
             } catch (e: Exception) {
@@ -63,6 +87,7 @@ class RegisterActivity : AppCompatActivity() {
                 binding.tvError.text = exception.message ?: "Wystąpił błąd podczas rejestracji"
             }
         }
+
     }
 
     private fun hashPassword(password: String): String {
@@ -77,6 +102,7 @@ class RegisterActivity : AppCompatActivity() {
         return keyGen.generateKeyPair()
     }
 
+
     private fun encryptPrivateKey(privateKey: ByteArray, password: String): String {
         val passwordBytes = password.toByteArray(Charsets.UTF_8)
         val keyBytes = ByteArray(16)
@@ -88,4 +114,23 @@ class RegisterActivity : AppCompatActivity() {
         val encrypted = cipher.doFinal(privateKey)
         return Base64.encodeToString(encrypted, Base64.NO_WRAP)
     }
+
+    private fun savePrivateKeyU2F(){
+        viewModel.publicKey?.let {
+            getPreferences(MODE_PRIVATE).edit()
+                .putString(PREF_PUBLIC_KEY, Base64.encodeToString(it.encoded, Base64.DEFAULT))
+                .apply()
+        }
+    }
+
+    private fun loadPublicKeyU2F(){
+        getPreferences(MODE_PRIVATE).getString(PREF_PUBLIC_KEY, null)?.let {
+            val bytes = Base64.decode(it, Base64.DEFAULT)
+            val kf = KeyFactory.getInstance("RSA")
+            val spec = X509EncodedKeySpec(bytes)
+            viewModel.publicKey = kf.generatePublic(spec)
+        }
+    }
+
+
 }

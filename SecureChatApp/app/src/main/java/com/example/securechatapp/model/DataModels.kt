@@ -57,15 +57,15 @@ data class CreateConversationRequest(
 
 // Profile
 data class UpdateProfileRequest(
-    val updates: UpdateData,
-    val old_password_hash: String
+    val updates: UpdateData
 )
 
 data class UpdateData(
     val username: String? = null,
-    val username_show: String? = null,
+    val usernameShow: String? = null,
     val email: String? = null,
-    val new_password: String? = null
+    val newPassword: String? = null,
+    val currentPassword: String
 )
 
 data class ConversationsResponse(

@@ -21,11 +21,11 @@ class ProfileViewModel : ViewModel() {
                     UpdateProfileRequest(
                         updates = UpdateData(
                             username = newUsername,
-                            username_show = newUsernameShow,
+                            usernameShow = newUsernameShow,
                             email = newEmail,
-                            new_password = newPassword
-                        ),
-                        old_password_hash = oldPasswordHash
+                            newPassword = newPassword,
+                            currentPassword = oldPasswordHash
+                        )
                     )
                 )
                 if (response.isSuccessful) {

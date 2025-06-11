@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.credentials)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -81,6 +82,12 @@ dependencies {
 
     implementation ("androidx.cardview:cardview:1.0.")
     implementation ("com.google.android.material:material:1.9.0")
+
+    // Yubico yubikit
+    implementation("com.yubico.yubikit:android:2.0.0-beta01")
+    implementation("com.yubico.yubikit:piv:2.0.0-beta01")
+
+
 
 
 }

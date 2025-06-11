@@ -40,6 +40,6 @@ fun getOkHttpClientWithCert(context: Context): OkHttpClient.Builder {
         .sslSocketFactory(sslContext.socketFactory, tmf.trustManagers[0] as X509TrustManager)
         .hostnameVerifier { hostname, session ->
             // Akceptuj "localhost" lub "10.0.2.2" bez weryfikacji
-            hostname == "localhost" || hostname == "10.0.2.2"
+            hostname == "localhost" || hostname == "10.0.2.2" //|| hostname == "lokalnyAdresKompa"
         }
 }

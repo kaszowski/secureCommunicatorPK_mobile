@@ -41,11 +41,10 @@ class UpdateCredentialsActivity : AppCompatActivity() {
         }
 
         val oldPasswordHash = hashPassword(currentPassword)
-        val updateData = UpdateData(new_password = hashPassword(newPassword))
+        val updateData = UpdateData(newPassword = hashPassword(newPassword), currentPassword = oldPasswordHash)
 
         val request = UpdateProfileRequest(
-            updates = updateData,
-            old_password_hash = oldPasswordHash
+            updates = updateData
         )
 
         sendUpdateRequest(request)
@@ -65,13 +64,13 @@ class UpdateCredentialsActivity : AppCompatActivity() {
         val oldPasswordHash = hashPassword(currentPassword)
         val updateData = UpdateData(
             username = username,
-            username_show = usernameShow,
-            email = email
+            usernameShow = usernameShow,
+            email = email,
+            currentPassword = oldPasswordHash
         )
 
         val request = UpdateProfileRequest(
-            updates = updateData,
-            old_password_hash = oldPasswordHash
+            updates = updateData
         )
 
         sendUpdateRequest(request)

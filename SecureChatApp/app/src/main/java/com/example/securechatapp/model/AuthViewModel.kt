@@ -5,6 +5,7 @@ import androidx.lifecycle.*
 import com.example.securechatapp.network.*
 import kotlinx.coroutines.launch
 import java.lang.Exception
+import java.security.PublicKey
 
 class AuthViewModel : ViewModel() {
     private val _loginState = MutableLiveData<Result<Unit>>()
@@ -12,6 +13,8 @@ class AuthViewModel : ViewModel() {
 
     private val _registerState = MutableLiveData<Result<Unit>>()
     val registerState: LiveData<Result<Unit>> = _registerState
+
+    var publicKey: PublicKey? = null
 
     fun login(username: String, password: String) {
         viewModelScope.launch {
@@ -30,7 +33,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun register(email: String, username: String, passwordHash: String, publicKey: String, privateKey: String) {
+    fun register(email: String, username: String, passwordHash: String, publicKey: String, privateKey: String = "") {
         viewModelScope.launch {
             try {
                 val response = ApiClient.getService().register(

@@ -28,6 +28,7 @@ object ApiClient {
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://10.0.2.2:5000/")
+            //.baseUrl("https://lokalnyAdresKompa:5000/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
