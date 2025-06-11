@@ -20,8 +20,8 @@ class KeysViewModel : ViewModel() {
     fun loadRecipientPublicKey(username: String) {
         viewModelScope.launch {
             try {
-                val request = PublicKeyRequest(username)
-                val response = ApiClient.getService().getPublicKey(request)
+                //val request = PublicKeyRequest(username)
+                val response = ApiClient.getService().getPublicKey(username)
                 if (response.isSuccessful) {
                     _recipientPublicKey.postValue(response.body()?.public_key)
                 } else {

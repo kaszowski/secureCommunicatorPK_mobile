@@ -37,8 +37,12 @@ interface ApiService {
     @GET("keys")
     suspend fun getKeys(): Response<KeysResponse>
 
-    @POST("key/public")
-    suspend fun getPublicKey(@Body request: PublicKeyRequest): Response<PublicKeyResponse>
+    //@GET("key/public")
+   // suspend fun getPublicKey(@Body request: PublicKeyRequest): Response<PublicKeyResponse>
+
+    @GET("key/public")
+    suspend fun getPublicKey(@Query("username") username: String): Response<PublicKeyResponse>
+
 
     // Conversations
     @GET("conversations")
