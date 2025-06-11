@@ -97,7 +97,7 @@ class KeysViewModel : ViewModel() {
                     val bytesPrivateKey = keys?.private_key?.data?.map { it.toByte() }?.toByteArray() ?: byteArrayOf()
                     //ApiClient.setPrivateKey(bytesPrivateKey)
                     val privateKey = String(bytesPrivateKey)
-                    ApiClient.setPrivateKey(privateKey)
+                    ApiClient.setPrivateKey(CryptoUtils.decryptPrivateKey(privateKey, password))
 
                     Log.d("klucz prywatny", privateKey)
 

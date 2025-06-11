@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.securechatapp.databinding.ActivityChatBinding
 import com.example.securechatapp.model.ChatViewModel
 import com.example.securechatapp.model.Message
+import com.example.securechatapp.network.ApiClient
 import com.example.securechatapp.utils.CryptoUtils
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -26,6 +27,8 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var adapter: MessagesAdapter
     private var conversationId: String = ""
     private var symmetricKey: ByteArray = ByteArray(0) // Pobierany z bazy danych
+    private lateinit var decryptedSymetricKey : ByteArray
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,12 +40,29 @@ class ChatActivity : AppCompatActivity() {
             finish()
             return
         }
-//        symmetricKey = intent.getByteArrayExtra("conversationKey") ?: run {
-//            finish()
-//            return
-//        }
-        symmetricKey = "mysecretkey12345".toByteArray(Charsets.UTF_8)
-        Log.d("KEY_DEBUG", "Długość klucza w bajtach: ${symmetricKey.size}")
+
+        symmetricKey = intent.getByteArrayExtra("conversationKey") ?: run {
+            finish()
+            return
+        }
+
+        val symmetricKeyString = String(symmetricKey) // Domyślnie UTF-8
+
+
+        if(ApiClient.getPrivateKey() == null)
+        {
+            symmetricKey = "mysecretkey12345".toByteArray(Charsets.UTF_8)
+            Log.d("UWAGA", "Brak klucza")
+        }
+        else
+        {
+            decryptedSymetricKey =
+                ApiClient.getPrivateKey()?.let { CryptoUtils.rsaDecrypt(symmetricKeyString, it) }!!
+        }
+
+
+//        symmetricKey = "mysecretkey12345".toByteArray(Charsets.UTF_8)
+//        Log.d("KEY_DEBUG", "Długość klucza w bajtach: ${symmetricKey.size}")
 
         // Inicjalizacja Socket.IO
         viewModel.initializeSocket(this)
@@ -56,7 +76,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = MessagesAdapter(symmetricKey) { message ->
+        adapter = MessagesAdapter(decryptedSymetricKey) { message ->
             // TODO: Obsługa kliknięcia na wiadomość jeśli potrzebna
         }
 
@@ -114,7 +134,7 @@ class ChatActivity : AppCompatActivity() {
         binding.btnSend.setOnClickListener {
             val messageContent = binding.etMessage.text.toString().trim()
             if (messageContent.isNotEmpty()) {
-                val encryptedMessage = encryptMessage(messageContent, symmetricKey)
+                val encryptedMessage = encryptMessage(messageContent, decryptedSymetricKey)
                 viewModel.sendMessage(conversationId, encryptedMessage)
                 binding.etMessage.text.clear()
             }

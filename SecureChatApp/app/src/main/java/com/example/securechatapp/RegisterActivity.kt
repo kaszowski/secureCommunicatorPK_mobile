@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Base64
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.securechatapp.databinding.ActivityRegisterBinding
@@ -97,22 +98,42 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun generateKeyPair(): KeyPair {
-        val keyGen = KeyPairGenerator.getInstance("RSA")
-        keyGen.initialize(2048)
-        return keyGen.generateKeyPair()
+        return try {
+            val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+            keyPairGenerator.initialize(2048)
+            val keyPair = keyPairGenerator.generateKeyPair()
+
+            // Logowanie do debugowania
+            Log.d("KeyGeneration", "Public Key Format: ${keyPair.public.format}")
+            Log.d("KeyGeneration", "Private Key Format: ${keyPair.private.format}")
+
+            keyPair
+        } catch (e: Exception) {
+            Log.e("KeyGeneration", "Error generating key pair", e)
+            throw e
+        }
     }
 
 
     private fun encryptPrivateKey(privateKey: ByteArray, password: String): String {
-        val passwordBytes = password.toByteArray(Charsets.UTF_8)
-        val keyBytes = ByteArray(16)
-        System.arraycopy(passwordBytes, 0, keyBytes, 0, passwordBytes.size.coerceAtMost(16))
+        return try {
+            // 1. Przygotuj klucz AES z hasła
+            val passwordBytes = password.toByteArray(Charsets.UTF_8)
+            val keyBytes = ByteArray(16)
+            System.arraycopy(passwordBytes, 0, keyBytes, 0, minOf(passwordBytes.size, 16))
+            val secretKey = SecretKeySpec(keyBytes, "AES")
 
-        val secretKey = SecretKeySpec(keyBytes, "AES")
-        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        val encrypted = cipher.doFinal(privateKey)
-        return Base64.encodeToString(encrypted, Base64.NO_WRAP)
+            // 2. Zaszyfruj klucz prywatny
+            val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+            val encrypted = cipher.doFinal(privateKey)
+
+            // 3. Zwróć jako Base64
+            Base64.encodeToString(encrypted, Base64.NO_WRAP)
+        } catch (e: Exception) {
+            Log.e("EncryptPrivateKey", "Error encrypting private key", e)
+            throw RuntimeException("Błąd podczas szyfrowania klucza prywatnego", e)
+        }
     }
 
     private fun savePrivateKeyU2F(){

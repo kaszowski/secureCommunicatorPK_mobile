@@ -84,19 +84,36 @@ class ConversationViewModel : ViewModel() {
         return keyGen.generateKey()
     }
 
-    fun rsaEncrypt(data: ByteArray, publicKeyPEM: String): ByteArray {
-        val cleanKey = publicKeyPEM
-            .replace("-----BEGIN PUBLIC KEY-----", "")
-            .replace("-----END PUBLIC KEY-----", "")
-            .replace("\\s".toRegex(), "")
-        val decoded = Base64.decode(cleanKey, Base64.DEFAULT)
-        val keySpec = X509EncodedKeySpec(decoded)
-        val keyFactory = KeyFactory.getInstance("RSA")
-        val publicKey = keyFactory.generatePublic(keySpec)
+    private fun rsaEncrypt(data: ByteArray, publicKeyString: String): ByteArray {
+        return try {
+            // 1. Sprawdź, czy to PEM (z nagłówkami)
+            val publicKeyBase64 = if (publicKeyString.contains("BEGIN PUBLIC KEY")) {
+                publicKeyString
+                    .replace("-----BEGIN PUBLIC KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
+                    .replace("\n", "")
+                    .trim()
+            } else {
+                // 2. Jeśli nie PEM, traktuj jako "goły" Base64
+                publicKeyString.trim()
+            }
 
-        val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey)
-        return cipher.doFinal(data)
+            // 3. Dekoduj klucz z Base64
+            val publicKeyBytes = Base64.decode(publicKeyBase64, Base64.DEFAULT)
+
+            // 4. Załaduj klucz publiczny
+            val keySpec = X509EncodedKeySpec(publicKeyBytes)
+            val keyFactory = KeyFactory.getInstance("RSA")
+            val publicKey = keyFactory.generatePublic(keySpec)
+
+            // 5. Zaszyfruj dane
+            val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey)
+            cipher.doFinal(data)
+        } catch (e: Exception) {
+            Log.e("ConversationViewModel", "RSA encryption error", e)
+            throw RuntimeException("Failed to encrypt with RSA: ${e.message}")
+        }
     }
 
 

@@ -1,8 +1,10 @@
 package com.example.securechatapp.utils
 
 import android.util.Base64
+import android.util.Log
 import java.security.KeyFactory
 import java.security.SecureRandom
+import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Random
 import javax.crypto.Cipher
@@ -38,32 +40,65 @@ object CryptoUtils {
         return String(decryptedBytes, Charsets.UTF_8)
     }
 
-    fun decryptPrivateKey(encryptedBase64: String, password: String): String {
-        val encryptedBytes = Base64.decode(encryptedBase64, Base64.NO_WRAP)
-        val passwordBytes = password.toByteArray(Charsets.UTF_8)
-        val keyBytes = ByteArray(16)
-        System.arraycopy(passwordBytes, 0, keyBytes, 0, passwordBytes.size.coerceAtMost(16))
+    fun decryptPrivateKey(encryptedPrivateKey: String, password: String): String {
+        return try {
+            // 1. Dekoduj z Base64
+            val encryptedBytes = Base64.decode(encryptedPrivateKey, Base64.NO_WRAP)
 
-        val secretKey = SecretKeySpec(keyBytes, "AES")
-        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
-        cipher.init(Cipher.DECRYPT_MODE, secretKey)
-        val decrypted = cipher.doFinal(encryptedBytes)
-        return String(decrypted, Charsets.UTF_8)
+            // 2. Przygotuj klucz AES z hasła
+            val passwordBytes = password.toByteArray(Charsets.UTF_8)
+            val keyBytes = ByteArray(16)
+            System.arraycopy(passwordBytes, 0, keyBytes, 0, minOf(passwordBytes.size, 16))
+            val secretKey = SecretKeySpec(keyBytes, "AES")
+
+            // 3. Odszyfruj klucz prywatny
+            val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+            cipher.init(Cipher.DECRYPT_MODE, secretKey)
+            val decryptedBytes = cipher.doFinal(encryptedBytes)
+
+            // 4. Zwróć jako Base64
+            Base64.encodeToString(decryptedBytes, Base64.NO_WRAP)
+        } catch (e: Exception) {
+            Log.e("DecryptPrivateKey", "Error decrypting private key", e)
+            throw RuntimeException("Błąd odszyfrowywania klucza prywatnego", e)
+        }
     }
 
-    fun rsaDecrypt(encryptedData: ByteArray, privateKeyPEM: String): ByteArray {
-        val cleanKey = privateKeyPEM
-            .replace("-----BEGIN PRIVATE KEY-----", "")
-            .replace("-----END PRIVATE KEY-----", "")
-            .replace("\\s".toRegex(), "")
-        val decoded = Base64.decode(cleanKey, Base64.DEFAULT)
-        val keySpec = PKCS8EncodedKeySpec(decoded)
-        val keyFactory = KeyFactory.getInstance("RSA")
-        val privateKey = keyFactory.generatePrivate(keySpec)
+    fun rsaDecrypt(encryptedAesKeyString: String, privateKeyString: String): ByteArray {
+        return try {
+            // 1. Dekoduj zaszyfrowany klucz AES
+            val encryptedAesKeyBytes = Base64.decode(encryptedAesKeyString, Base64.NO_WRAP)
 
-        val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
-        cipher.init(Cipher.DECRYPT_MODE, privateKey)
-        return cipher.doFinal(encryptedData)
+            // 2. Przygotuj klucz prywatny
+            val privateKeyBytes = try {
+                // Spróbuj najpierw jako czysty Base64
+                Base64.decode(privateKeyString, Base64.NO_WRAP)
+            } catch (e: IllegalArgumentException) {
+                // Jeśli nie udało się, może to być PEM
+                privateKeyString
+                    .replace("-----BEGIN PRIVATE KEY-----", "")
+                    .replace("-----END PRIVATE KEY-----", "")
+                    .replace("\n", "")
+                    .trim()
+                    .let { Base64.decode(it, Base64.NO_WRAP) }
+            }
+
+            // Logowanie do debugowania
+            Log.d("RSADecrypt", "Private key bytes length: ${privateKeyBytes.size}")
+
+            // 3. Załaduj klucz prywatny
+            val keySpec = PKCS8EncodedKeySpec(privateKeyBytes)
+            val keyFactory = KeyFactory.getInstance("RSA")
+            val privateKey = keyFactory.generatePrivate(keySpec)
+
+            // 4. Odszyfruj dane
+            val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
+            cipher.init(Cipher.DECRYPT_MODE, privateKey)
+            cipher.doFinal(encryptedAesKeyBytes)
+        } catch (e: Exception) {
+            Log.e("RSADecrypt", "Error details:", e)
+            throw RuntimeException("Błąd podczas odszyfrowywania klucza AES: ${e.message}", e)
+        }
     }
 
 
