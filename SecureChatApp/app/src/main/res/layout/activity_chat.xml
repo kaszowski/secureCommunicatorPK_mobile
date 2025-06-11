@@ -5,16 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="#E8F5E9"
     tools:context=".ChatActivity">
 
-    <!-- Status bar i toolbar (opcjonalne) -->
+    <!-- Pasek górny -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="#2E7D32"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:elevation="4dp">
 
         <TextView
             android:id="@+id/tvChatTitle"
@@ -31,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Offline"
-            android:textColor="@android:color/holo_red_dark"
+            android:textColor="#FF5252"
             android:textSize="14sp"
             android:drawablePadding="4dp"
             android:drawableStart="@drawable/ic_circle_offline" />
@@ -43,17 +45,17 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
+        android:padding="12dp"
         android:clipToPadding="false"
         android:scrollbars="vertical" />
 
-    <!-- Panel wprowadzania wiadomości -->
+    <!-- Pole wiadomości i przycisk wysyłania -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:background="@android:color/white"
+        android:background="#FFFFFF"
         android:elevation="4dp">
 
         <EditText
@@ -65,7 +67,9 @@
             android:inputType="textMultiLine"
             android:maxLines="3"
             android:background="@android:color/transparent"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:textColor="#000000"
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/btnSend"
@@ -73,26 +77,28 @@
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:text="Wyślij"
-            android:backgroundTint="@color/purple_500"
+            android:backgroundTint="#4CAF50"
             android:textColor="@android:color/white"
             android:minWidth="64dp" />
     </LinearLayout>
 
-    <!-- Status ładowania i błędy -->
+    <!-- Pasek ładowania i komunikaty o błędach -->
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:layout_marginTop="8dp" />
 
     <TextView
         android:id="@+id/tvError"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp"
-        android:textColor="@android:color/holo_red_dark"
+        android:textColor="#D32F2F"
         android:visibility="gone"
-        android:gravity="center" />
+        android:gravity="center"
+        android:textSize="14sp" />
 </LinearLayout>

@@ -57,14 +57,27 @@ class MessagesAdapter(
             return try {
                 val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                 isoFormat.timeZone = TimeZone.getTimeZone("UTC")
-                val date = isoFormat.parse(timestamp)
+                val messageDate = isoFormat.parse(timestamp) ?: return ""
 
-                val displayFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-                date?.let { displayFormat.format(it) } ?: ""
+                val now = Calendar.getInstance()
+                val messageCal = Calendar.getInstance().apply { time = messageDate }
+
+                return when {
+                    isSameDay(now, messageCal) -> {
+                        SimpleDateFormat("HH:mm", Locale.getDefault()).format(messageDate)
+                    }
+                    isYesterday(now, messageCal) -> {
+                        SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(messageDate)
+                    }
+                    else -> {
+                        SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(messageDate)
+                    }
+                }
             } catch (e: Exception) {
                 ""
             }
         }
+
     } // Tutaj było brakujące zamknięcie klasy ViewHolder
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -86,6 +99,19 @@ class MessagesAdapter(
 
         override fun areContentsTheSame(oldItem: Message, newItem: Message) =
             oldItem == newItem
+    }
+
+    private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+    }
+
+    private fun isYesterday(today: Calendar, date: Calendar): Boolean {
+        val yesterday = Calendar.getInstance().apply {
+            timeInMillis = today.timeInMillis
+            add(Calendar.DAY_OF_YEAR, -1)
+        }
+        return isSameDay(yesterday, date)
     }
 
 }

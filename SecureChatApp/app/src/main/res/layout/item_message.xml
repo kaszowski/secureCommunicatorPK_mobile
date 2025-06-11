@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="4dp">
+    android:padding="6dp">
 
-    <!-- Wiadomość nadawcy (wyrównana do prawej) -->
+    <!-- Wiadomość nadawcy (prawa strona) -->
     <LinearLayout
         android:id="@+id/layoutSender"
         android:layout_width="match_parent"
@@ -20,13 +20,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bubble_sender"
-            android:padding="12dp">
+            android:padding="12dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="4dp"
+            android:elevation="2dp">
 
             <TextView
                 android:id="@+id/tvSenderContent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
+                android:textSize="15sp"
                 tools:text="To jest moja wiadomość" />
 
             <TextView
@@ -41,7 +45,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Wiadomość odbiorcy (wyrównana do lewej) -->
+    <!-- Wiadomość odbiorcy (lewa strona) -->
     <LinearLayout
         android:id="@+id/layoutReceiver"
         android:layout_width="match_parent"
@@ -55,13 +59,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bubble_receiver"
-            android:padding="12dp">
+            android:padding="12dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginStart="4dp"
+            android:elevation="2dp">
 
             <TextView
                 android:id="@+id/tvReceiverContent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/black"
+                android:textSize="15sp"
                 tools:text="To jest wiadomość od kogoś" />
 
             <TextView

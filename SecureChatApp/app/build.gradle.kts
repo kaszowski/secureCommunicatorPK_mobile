@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.securechatapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -90,6 +90,8 @@ dependencies {
     implementation("io.socket:socket.io-client:2.1.0") {
         exclude(group = "org.json", module = "json") // uniknij konfliktu z Android JSON
     }
+
+    implementation("com.yubico.yubikit:android:2.3.0")
 
 
 

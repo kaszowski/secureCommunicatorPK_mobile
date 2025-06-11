@@ -15,6 +15,8 @@ import com.example.securechatapp.model.Message
 import com.example.securechatapp.utils.CryptoUtils
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDateTime
 import java.util.*
 
 class ChatActivity : AppCompatActivity() {
@@ -28,6 +30,7 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
 
         conversationId = intent.getStringExtra("conversationId") ?: run {
             finish()
@@ -80,8 +83,14 @@ class ChatActivity : AppCompatActivity() {
         }
 
         viewModel.messages.observe(this) { messages ->
-            adapter.submitList(messages)
-            binding.rvMessages.scrollToPosition(messages.size - 1)
+            val layoutManager = binding.rvMessages.layoutManager as LinearLayoutManager
+            val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+            val shouldScroll = lastVisiblePosition == adapter.itemCount - 1
+            adapter.submitList(messages.sortedBy { Instant.parse(it.sendAt) }) {
+                if (shouldScroll) {
+                    binding.rvMessages.scrollToPosition(messages.size - 1)
+                }
+            }
         }
 
         viewModel.isLoading.observe(this) { isLoading ->

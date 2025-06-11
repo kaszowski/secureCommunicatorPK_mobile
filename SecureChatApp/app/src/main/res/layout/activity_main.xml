@@ -3,22 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#E8F5E9">
 
+    <!-- Pasek narzędzi -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="#2E7D32"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:title="SecureChat"
         app:titleTextColor="@android:color/white" />
 
+    <!-- Główna część widoku -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
+        <!-- Lista konwersacji -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvConversations"
             android:layout_width="match_parent"
@@ -27,6 +31,7 @@
             android:paddingTop="8dp"
             android:paddingBottom="72dp" />
 
+        <!-- Przycisk nowej konwersacji -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnNewChat"
             android:layout_width="wrap_content"
@@ -37,9 +42,10 @@
             android:src="@drawable/ic_add"
             android:contentDescription="Nowy czat"
             app:fabSize="normal"
-            app:backgroundTint="?colorPrimary"
+            app:backgroundTint="#4CAF50"
             app:tint="@android:color/white" />
 
+        <!-- Ładowanie -->
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleLarge"
@@ -48,6 +54,7 @@
             android:layout_centerInParent="true"
             android:visibility="gone" />
 
+        <!-- Komunikat błędu -->
         <TextView
             android:id="@+id/tvError"
             android:layout_width="match_parent"
@@ -55,6 +62,8 @@
             android:layout_centerInParent="true"
             android:padding="16dp"
             android:textAlignment="center"
-            android:visibility="gone" />
+            android:textColor="#D32F2F"
+            android:visibility="gone"
+            android:textSize="14sp" />
     </RelativeLayout>
 </LinearLayout>

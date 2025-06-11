@@ -3,37 +3,42 @@ package com.example.securechatapp.model
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.securechatapp.network.ApiClient
 import com.example.securechatapp.network.SocketManager
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.util.UUID
 
 class ChatViewModel : ViewModel() {
-    private val _messages = MutableLiveData<List<Message>>()
+    private val _messages = MutableLiveData<List<Message>>(emptyList())
     val messages: LiveData<List<Message>> = _messages
 
-    private val _isLoading = MutableLiveData<Boolean>()
+    private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _errorMessage = MutableLiveData<String?>()
+    private val _errorMessage = MutableLiveData<String?>(null)
     val errorMessage: LiveData<String?> = _errorMessage
 
-    private val _socketStatus = MutableLiveData<Boolean>()
+    private val _socketStatus = MutableLiveData<Boolean>(false)
     val socketStatus: LiveData<Boolean> = _socketStatus
 
-    private val connectionStatusObserver = Observer<Boolean> { connected ->
-        _socketStatus.postValue(connected)
+    private val messageCallback = { message: Message ->
+        val currentList = _messages.value.orEmpty()
+        _messages.postValue(currentList + message)
     }
 
     fun initializeSocket(context: Context) {
         SocketManager.initialize(context, ApiClient.getCookieManager())
-        SocketManager.setupMessageListener { message ->
-            _messages.postValue(_messages.value.orEmpty() + message)
+        SocketManager.setupMessageListener(messageCallback)
+
+        SocketManager.connectionStatus.observeForever { connected ->
+            _socketStatus.postValue(connected)
+            if (!connected) {
+                _errorMessage.postValue("Connection lost. Reconnecting...")
+            }
         }
-        SocketManager.connectionStatus.observeForever(connectionStatusObserver)
     }
 
     fun loadMessages(conversationId: String) {
@@ -46,11 +51,12 @@ class ChatViewModel : ViewModel() {
 
                 if (response.isSuccessful) {
                     _messages.value = response.body()?.messages ?: emptyList()
+                    _errorMessage.value = null
                 } else {
-                    _errorMessage.value = "Błąd: ${response.errorBody()?.string()}"
+                    _errorMessage.value = "Error: ${response.errorBody()?.string()}"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Błąd sieci: ${e.message}"
+                _errorMessage.value = "Network error: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
@@ -58,30 +64,30 @@ class ChatViewModel : ViewModel() {
     }
 
     fun sendMessage(conversationId: String, content: String) {
+        if (content.isBlank()) return
+
         if (!SocketManager.isConnected()) {
-            _errorMessage.value = "Brak połączenia z serwerem"
+            _errorMessage.value = "No connection to server"
             return
         }
 
-        // Najpierw dodaj lokalnie dla natychmiastowego feedbacku
+        // Add temporary message for instant feedback
         val tempMessage = Message(
             messageId = UUID.randomUUID().toString(),
             userId = ApiClient.getUserId().toString(),
             conversationId = conversationId,
-            content = Content("Buffer", content.toByteArray().map { it.toInt() }),
-            sendAt = System.currentTimeMillis().toString()
+            content = Content("text", content.toByteArray().map { it.toInt() }),
+            sendAt = Instant.now().toString()
         )
         _messages.value = _messages.value.orEmpty() + tempMessage
 
-        // Wyślij przez Socket.IO
+        // Send via Socket.IO
         SocketManager.sendMessage(conversationId, content)
     }
 
-
     override fun onCleared() {
         super.onCleared()
-        SocketManager.connectionStatus.removeObserver(connectionStatusObserver)
+        SocketManager.removeMessageListener(messageCallback)
         SocketManager.disconnect()
     }
-
 }
