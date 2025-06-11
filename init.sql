@@ -16,8 +16,8 @@ CREATE TABLE "User" (
     "PasswordHash" VARCHAR(255) NOT NULL,
     "Email" VARCHAR(255) NOT NULL UNIQUE,
     "UpdatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    "PublicKey" VARCHAR NOT NULL,
-    "PrivateKey" VARCHAR NULL
+    "PublicKey" BYTEA NOT NULL,
+    "PrivateKey" BYTEA NULL
 );
 
 -- Tabela zablokowanych użytkowników
@@ -57,7 +57,7 @@ CREATE TABLE "Message" (
     "MessageId" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "UserId" UUID NULL, -- Zmieniono z NOT NULL na NULL, aby umożliwić SET NULL
     "ConversationId" UUID NOT NULL,
-    "Content" TEXT NOT NULL, -- Podmienić na BYTEA dla zaszyfrowanej treści / obecnie TEXT bo przykładowe dane
+    "Content" BYTEA NOT NULL, -- Podmienić na BYTEA dla zaszyfrowanej treści / obecnie TEXT bo przykładowe dane
     "SendAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY ("UserId") REFERENCES "User"("UserId") ON DELETE SET NULL, -- Zmieniono z ON DELETE CASCADE
     FOREIGN KEY ("ConversationId") REFERENCES "Conversation"("ConversationId") ON DELETE CASCADE

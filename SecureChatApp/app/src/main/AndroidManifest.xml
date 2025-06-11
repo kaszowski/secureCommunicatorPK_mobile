@@ -27,6 +27,7 @@
         <activity android:name=".LoginActivity" />
         <activity android:name=".MainActivity" />
         <activity android:name=".RegisterActivity" />
+        <activity android:name=".ChatActivity" />
         <activity android:name=".UpdateCredentialsActivity"
             tools:ignore="DuplicateActivity" />
 

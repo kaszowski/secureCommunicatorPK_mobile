@@ -15,7 +15,17 @@ data class RegisterRequest(
 )
 
 // Keys
-data class KeysResponse(val public_key: String, val private_key: String)
+data class Keys(
+    @SerializedName("PublicKey")
+    val public_key: Content,
+
+    @SerializedName("PrivateKey")
+    val private_key: Content)
+
+data class KeysDecrypted(
+    val public_key: String,
+    val private_key: String)
+
 data class PublicKeyRequest(val username: String)
 data class PublicKeyResponse(val public_key: String)
 
@@ -31,22 +41,28 @@ data class Conversation(
     val avatar: ByteArray? = null,
 
     @SerializedName("Background")
-    val background: ByteArray? = null
+    val background: ByteArray? = null,
+
+    @SerializedName("EncryptedConversationKey")
+    val conversationKey : Content
 )
 
-
-data class MessagesRequest(
-    val conversationId: String,
-    val limit: Int = 50,
-    val offset: Int = 0
-)
 
 data class Message(
-    val id: String,
-    val conversation_id: String,
-    val sender: String,
-    val content: String,
-    val timestamp: Long
+    @SerializedName("MessageId")
+    val messageId: String,
+
+    @SerializedName("UserId")
+    val userId: String,
+
+    @SerializedName("ConversationId")
+    val conversationId: String,
+
+    @SerializedName("Content")
+    val content: Content,
+
+    @SerializedName("SendAt")
+    val sendAt: String
 )
 
 data class CreateConversationRequest(
@@ -71,4 +87,28 @@ data class UpdateData(
 data class ConversationsResponse(
     @SerializedName("conversations")
     val conversations: List<Conversation>
+)
+
+data class KeysResponse(
+    @SerializedName("keys")
+    val keys: Keys
+)
+
+data class MessageRequest(
+    val conversationId: String,
+    val limit: Int,
+    val offset: Int
+)
+
+data class MessageResponse(
+    val messages: List<Message>
+)
+
+data class Content(
+
+    @SerializedName("type")
+    val type: String,
+
+    @SerializedName("data")
+    val data: List<Int>
 )

@@ -116,10 +116,11 @@ function tokenMiddleware(req, res, next)
 
 io.on('connection', async (socket) => {
     console.log('A client connected via HTTPS');
-    const authCookies = socket.handshake.headers.cookie
+    //const authData = socket.handshake.headers.cookie
     try
     {
-        token = cookie.parse(authCookies).token
+        const token = socket.handshake.headers.cookie ? cookie.parse(socket.handshake.headers.cookie).token : socket.handshake.auth?.token;
+        //token = cookie.parse(authData).token
         data = jwt.verify(token, SECRET_KEY)
         if(blacklist.has(token))
         {

@@ -7,7 +7,8 @@ import com.example.securechatapp.model.KeysResponse
 import com.example.securechatapp.model.LoginRequest
 import com.example.securechatapp.model.LoginResponse
 import com.example.securechatapp.model.Message
-import com.example.securechatapp.model.MessagesRequest
+import com.example.securechatapp.model.MessageRequest
+import com.example.securechatapp.model.MessageResponse
 import com.example.securechatapp.model.PublicKeyRequest
 import com.example.securechatapp.model.PublicKeyResponse
 import com.example.securechatapp.model.RegisterRequest
@@ -44,8 +45,8 @@ interface ApiService {
     suspend fun getConversations(): Response<ConversationsResponse>
 
 
-    @POST("messages")
-    suspend fun getMessages(@Body request: MessagesRequest): Response<List<Message>>
+    @POST("/messages")
+    suspend fun getMessages(@Body body: MessageRequest): Response<MessageResponse>
 
     @POST("conversation/create")
     suspend fun createConversation(@Body request: CreateConversationRequest): Response<Unit>

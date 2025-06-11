@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class ConversationsAdapter(
-    private val onItemClick: (String) -> Unit
+    private val onItemClick: (String, ByteArray) -> Unit
 ) : ListAdapter<Conversation, ConversationsAdapter.ViewHolder>(DiffCallback()) {
 
     inner class ViewHolder(private val binding: ItemConversationBinding) :
@@ -33,7 +33,8 @@ class ConversationsAdapter(
                 }
 
                 root.setOnClickListener {
-                    onItemClick(conversation.id)
+                    val key = conversation.conversationKey?.data?.map { it.toByte() }?.toByteArray() ?: byteArrayOf()
+                    onItemClick(conversation.id, key)
                 }
             }
         }
