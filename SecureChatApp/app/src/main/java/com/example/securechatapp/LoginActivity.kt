@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.securechatapp.databinding.ActivityLoginBinding
@@ -66,7 +67,10 @@ class LoginActivity : AppCompatActivity() {
                 )
                 finish()
             }.onFailure { error ->
-                binding.tvError.text = error.message ?: "Login failed"
+                binding.tvError.apply {
+                    text = error.message ?: "Login failed"
+                    visibility = View.VISIBLE
+                }
             }
         }
     }
