@@ -1,21 +1,57 @@
-import js from '@eslint/js';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
-import pluginReact from 'eslint-plugin-react';
-import { defineConfig } from 'eslint/config';
-import eslintPluginPrettier from 'eslint-plugin-prettier';
+import js from "@eslint/js";
+import globals from "globals";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import tseslint from "typescript-eslint";
+import prettierConfig from "eslint-config-prettier";
+import prettierPlugin from "eslint-plugin-prettier";
 
-export default defineConfig([
+export default tseslint.config(
   {
-    files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
-    plugins: { js },
-    extends: ['js/recommended']
+    ignores: [
+      "dist",
+      ".prettierrc.*",
+      "node_modules",
+      "build",
+      "coverage",
+      "public",
+    ],
   },
   {
-    files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
-    languageOptions: { globals: globals.browser }
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+      prettier: prettierPlugin,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
+      "prettier/prettier": "error",
+
+      // TypeScript specific rules
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+
+      // General code quality rules
+      "no-console": "warn",
+      "no-debugger": "error",
+      "prefer-const": "error",
+      "no-var": "error",
+    },
   },
-  tseslint.configs.recommended,
-  pluginReact.configs.flat.recommended,
-  eslintPluginPrettier.configs.recommended
-]);
+  prettierConfig
+);
